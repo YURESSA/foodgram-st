@@ -94,12 +94,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return self._ingredients_to_txt(ingredients)
 
     def _ingredients_to_txt(self, ingredients):
-        lines = [
-            f"{item['recipe__ingredients_in_recipe__ingredient__name']} - "
-            f"{item['total']} ("
-            f"{item['recipe__ingredients_in_recipe__ingredient__measurement_unit']})"
-            for item in ingredients
-        ]
+        lines = []
+        for item in ingredients:
+            name = item[
+                'recipe__ingredients_in_recipe__ingredient__name'
+            ]
+            total = item['total']
+            unit = item[
+                'recipe__ingredients_in_recipe__ingredient__measurement_unit'
+            ]
+            lines.append(f"{name} - {total} ({unit})")
+
         content = "\n".join(lines)
         file = BytesIO()
         file.write(content.encode())
