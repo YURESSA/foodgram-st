@@ -142,9 +142,9 @@ AUTHENTICATION_BACKENDS = [
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'SERIALIZERS': {
-        'user': 'api.serializers.AuthorSerializer',
-        'user_create': 'api.serializers.CreateUser',
-        'current_user': 'api.serializers.AuthorSerializer',
+        'user': 'api.serializers.user.AuthorSerializer',
+        'user_create': 'api.serializers.user.CreateUser',
+        'current_user': 'api.serializers.user.AuthorSerializer',
     },
     'PERMISSIONS': {
         'user': ['djoser.permissions.CurrentUserOrAdminOrReadOnly'],

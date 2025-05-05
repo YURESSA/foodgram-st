@@ -1,13 +1,9 @@
-from api.filters import RecipeFilter
 from api.permissions import OwnershipPermission
-from api.serializers import (
-    RecipeSerializer, CreateRecipeSerializer, FavoriteSerializer, CartSerializer,
-    SubscriptionSerializer, SubscriberSerializer, CreateAvatarSerializer
-)
+from api.serializers.subscription import SubscriberSerializer, SubscriptionSerializer
+from api.serializers.user import CreateAvatarSerializer
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from djoser import views
-from recipe.models import Recipe, UserCart
 from rest_framework import decorators, response, status, permissions
 
 
@@ -49,10 +45,14 @@ class UserViewSet(views.UserViewSet):
         permission_classes=[permissions.IsAuthenticated],
     )
     def subscriptions(self, request):
-        target_ids = request.user.subscriptions.values_list("target", flat=True)
+        target_ids = request.user.subscriptions.values_list(
+            "target", flat=True
+        )
         queryset = self.get_queryset().filter(pk__in=target_ids)
         page = self.paginate_queryset(queryset)
-        serializer = SubscriberSerializer(page, many=True, context={"request": request})
+        serializer = SubscriberSerializer(
+            page, many=True, context={"request": request}
+        )
         return self.get_paginated_response(serializer.data)
 
     @decorators.action(
@@ -83,7 +83,9 @@ class UserViewSet(views.UserViewSet):
         response_serializer = SubscriberSerializer(
             self.get_queryset().get(pk=pk), context={"request": request}
         )
-        return response.Response(response_serializer.data, status=status.HTTP_201_CREATED)
+        return response.Response(
+            response_serializer.data, status=status.HTTP_201_CREATED
+        )
 
     def _delete_subscription(self, request, pk):
         model = SubscriptionSerializer.Meta.model
