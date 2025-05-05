@@ -1,7 +1,9 @@
 from api.filters import RecipeFilter
 from api.permissions import OwnershipPermission
-from api.serializers import RecipeSerializer, CreateRecipeSerializer, FavoriteSerializer, CartSerializer
-from api.serializers import SubscriptionSerializer, SubscriberSerializer, CreateAvatarSerializer
+from api.serializers import (
+    RecipeSerializer, CreateRecipeSerializer, FavoriteSerializer, CartSerializer,
+    SubscriptionSerializer, SubscriberSerializer, CreateAvatarSerializer
+)
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from djoser import views
@@ -20,11 +22,9 @@ class UserViewSet(views.UserViewSet):
         permission_classes=[permissions.IsAuthenticated],
     )
     def avatar(self, request, id):
-        return (
-            self._create_avatar(request)
-            if request.method == "PUT"
-            else self._delete_avatar(request)
-        )
+        if request.method == "PUT":
+            return self._create_avatar(request)
+        return self._delete_avatar(request)
 
     def _create_avatar(self, request):
         serializer = CreateAvatarSerializer(
@@ -64,11 +64,10 @@ class UserViewSet(views.UserViewSet):
     def subscribe(self, request, id):
         user_model = get_user_model()
         get_object_or_404(user_model, pk=id)
-        return (
-            self._create_subscription(request, id)
-            if request.method == "POST"
-            else self._delete_subscription(request, id)
-        )
+
+        if request.method == "POST":
+            return self._create_subscription(request, id)
+        return self._delete_subscription(request, id)
 
     def _create_subscription(self, request, pk):
         if request.user.pk == int(pk):

@@ -45,15 +45,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return RecipeSerializer
 
     @decorators.action(
-        detail=True, methods=("post", "delete"),
-        url_path="favorite", permission_classes=(permissions.IsAuthenticated,)
+        detail=True,
+        methods=("post", "delete"),
+        url_path="favorite",
+        permission_classes=(permissions.IsAuthenticated,)
     )
     def favorite(self, request, pk):
         return self._handle_recipe_action(request, pk, FavoriteSerializer)
 
     @decorators.action(
-        detail=True, methods=("post", "delete"),
-        url_path="shopping_cart", permission_classes=(permissions.IsAuthenticated,)
+        detail=True,
+        methods=("post", "delete"),
+        url_path="shopping_cart",
+        permission_classes=(permissions.IsAuthenticated,)
     )
     def shopping_cart(self, request, pk):
         return self._handle_recipe_action(request, pk, CartSerializer)
@@ -77,8 +81,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return response.Response(status=status.HTTP_400_BAD_REQUEST)
 
     @decorators.action(
-        detail=False, methods=("get",),
-        url_path="download_shopping_cart", permission_classes=(permissions.IsAuthenticated,)
+        detail=False,
+        methods=("get",),
+        url_path="download_shopping_cart",
+        permission_classes=(permissions.IsAuthenticated,)
     )
     def download_shopping_cart(self, request):
         ingredients = UserCart.objects.filter(user=request.user).values(
@@ -92,7 +98,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def _ingredients_to_txt(self, ingredients):
         lines = [
             f"{item['recipe__ingredients_in_recipe__ingredient__name']} - "
-            f"{item['total']}("
+            f"{item['total']} ("
             f"{item['recipe__ingredients_in_recipe__ingredient__measurement_unit']})"
             for item in ingredients
         ]
@@ -109,8 +115,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
 
     @decorators.action(
-        detail=True, methods=("get",),
-        url_path="get-link", url_name="get-link"
+        detail=True,
+        methods=("get",),
+        url_path="get-link",
+        url_name="get-link"
     )
     def get_short_link(self, request, pk):
         recipe = self.get_object()
