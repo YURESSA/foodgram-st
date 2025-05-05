@@ -1,8 +1,8 @@
+from auth_user.models import Subscribe
+from django.contrib.auth import get_user_model
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
-from django.contrib.auth import get_user_model
-from auth_user.models import Subscribe
 
 User = get_user_model()
 

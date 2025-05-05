@@ -1,8 +1,11 @@
-from drf_extra_fields.fields import Base64ImageField
-from recipe.models import Recipe, IngredientInRecipe
 from rest_framework import serializers
+from drf_extra_fields.fields import Base64ImageField
 
-from .ingredient import IngredientRecipeSerializer, CreateIngredientSerializer
+from recipe.models import Recipe, IngredientInRecipe
+from .ingredient import (
+    IngredientRecipeSerializer,
+    CreateIngredientSerializer
+)
 from .user import AuthorSerializer
 
 
@@ -30,11 +33,17 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         user = self.context.get("request").user
-        return user.is_authenticated and user.favorites.filter(recipe=obj).exists()
+        return (
+            user.is_authenticated
+            and user.favorites.filter(recipe=obj).exists()
+        )
 
     def get_is_in_shopping_cart(self, obj):
         user = self.context.get("request").user
-        return user.is_authenticated and user.carts.filter(recipe=obj).exists()
+        return (
+            user.is_authenticated
+            and user.carts.filter(recipe=obj).exists()
+        )
 
 
 class CreateRecipeSerializer(serializers.ModelSerializer):
@@ -48,10 +57,14 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
     def validate(self, data):
         ingredients = data.get("ingredients")
         if not ingredients:
-            raise serializers.ValidationError({"ingredients": "Обязательное поле"})
+            raise serializers.ValidationError({
+                "ingredients": "Обязательное поле"
+            })
         ids = [i["id"] for i in ingredients]
         if len(ids) != len(set(ids)):
-            raise serializers.ValidationError({"ingredients": "Ингредиенты не должны повторяться"})
+            raise serializers.ValidationError({
+                "ingredients": "Ингредиенты не должны повторяться"
+            })
         return data
 
     def validate_image(self, value):
@@ -78,7 +91,8 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
                 recipe=recipe,
                 ingredient_id=ingredient["id"],
                 amount=ingredient["amount"]
-            ) for ingredient in ingredients
+            )
+            for ingredient in ingredients
         ])
 
     def to_representation(self, instance):

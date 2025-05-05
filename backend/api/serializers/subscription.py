@@ -1,7 +1,7 @@
-from auth_user.models import Subscribe
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
+from auth_user.models import Subscribe
 from .recipe import ShortRecipeSerializer
 from .user import AuthorSerializer, IsSubscribedMixin
 
@@ -24,7 +24,11 @@ class SubscriberSerializer(AuthorSerializer, IsSubscribedMixin):
         limit = self.context["request"].query_params.get("recipes_limit")
         if limit and limit.isdigit():
             queryset = queryset[:int(limit)]
-        return ShortRecipeSerializer(queryset, many=True, context=self.context).data
+        return ShortRecipeSerializer(
+            queryset,
+            many=True,
+            context=self.context
+        ).data
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
