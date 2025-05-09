@@ -8,7 +8,7 @@ volumes:
 services:
 
   backend:
-    container_name: foodgram-back
+    container_name: foodgram_backend-back
     build: ../backend
     ports:
       - "8000:8000"
@@ -21,16 +21,16 @@ services:
              python manage.py makemigrations && \
              python manage.py migrate && \
              python manage.py parse_ingredients && \
-             gunicorn foodgram.wsgi:application --bind 0:8000"
+             gunicorn foodgram_backend.wsgi:application --bind 0:8000"
 
   frontend:
-    container_name: foodgram-front
+    container_name: foodgram_backend-front
     build: ../frontend
     volumes:
       - ../frontend/:/app/result_build/
 
   nginx:
-    container_name: foodgram-proxy
+    container_name: foodgram_backend-proxy
     image: nginx:1.25.4-alpine
     ports:
       - "80:80"
@@ -45,12 +45,12 @@ services:
       - media_volume:/etc/nginx/html/media/
 
   postgres:
-    container_name: foodgram-db
+    container_name: foodgram_backend-db
     image: postgres:17
     environment:
       - POSTGRES_USER=foodgram_user
       - POSTGRES_PASSWORD=6ghHIUNJBY87JBIO8jY
-      - POSTGRES_DB=foodgram
+      - POSTGRES_DB=foodgram_backend
     ports:
       - 5432:5432
     volumes:
