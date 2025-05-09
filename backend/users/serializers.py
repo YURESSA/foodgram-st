@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 
+from .models import Follow
+
 User = get_user_model()
 
 
@@ -21,20 +23,29 @@ class RegisterUserSerializer(UserCreateSerializer):
 
 
 class PublicUserSerializer(UserSerializer):
+    avatar = serializers.SerializerMethodField()
     is_subscribed = serializers.SerializerMethodField()
-    profile_image = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = (
             'id', 'email', 'username',
             'first_name', 'last_name',
-            'is_subscribed', 'profile_image'
+            'is_subscribed', 'avatar',
         )
 
-    def get_profile_image(self, obj):
-        image = getattr(obj, 'profile_image', None)
-        if image:
+    def get_is_subscribed(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return Follow.objects.filter(
+                follower=request.user, following=obj
+            ).exists()
+        return False
+
+    def get_avatar(self, obj):
+        if obj.profile_image:
             request = self.context.get('request')
-            return request.build_absolute_uri(image.url) if request else image.url
+            if request:
+                return request.build_absolute_uri(obj.profile_image.url)
+            return obj.profile_image.url
         return None

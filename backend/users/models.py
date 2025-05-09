@@ -40,3 +40,45 @@ class User(AbstractUser):
 
     def __str__(self):
         return f'{self.username} ({self.email})'
+
+
+from django.db import models
+from django.conf import settings
+
+
+class Follow(models.Model):
+    """Модель, отражающая подписку одного пользователя на другого."""
+    follower = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='following_set',
+        verbose_name='Пользователь-читатель',
+    )
+    following = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='follower_set',
+        verbose_name='Пользователь-автор',
+    )
+    followed_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Время подписки',
+    )
+
+    class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Список подписок'
+        ordering = ['-followed_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['follower', 'following'],
+                name='no_duplicate_follows'
+            ),
+            models.CheckConstraint(
+                check=~models.Q(follower=models.F('following')),
+                name='no_self_follow'
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.follower} подписан {self.following}'
