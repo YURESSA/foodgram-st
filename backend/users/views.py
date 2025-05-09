@@ -1,10 +1,12 @@
 from django.contrib.auth import get_user_model
 from djoser.views import UserViewSet
-from rest_framework import permissions
+from rest_framework import permissions, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from .pagination import CustomPagination
 from .serializers import (
-    PublicUserSerializer
+    PublicUserSerializer, SetAvatarSerializer
 )
 
 User = get_user_model()
@@ -15,3 +17,75 @@ class ExtendedUserViewSet(UserViewSet):
     serializer_class = PublicUserSerializer
     pagination_class = CustomPagination
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def check_authenticated(self, user):
+        if not user.is_authenticated:
+            return Response(
+                {'detail': 'Unauthorized'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        return None
+
+    def update_avatar(self, user, data, request):
+        if 'avatar' not in data:
+            return Response(
+                {'detail': 'Поле avatar обязательно для заполнения.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer = SetAvatarSerializer(
+            user, data=data, partial=True,
+            context={'request': request}
+        )
+        if serializer.is_valid():
+            try:
+                serializer.save()
+                avatar_url = request.build_absolute_uri(user.profile_image.url) if user.profile_image else None
+                return Response({'avatar': avatar_url}, status=status.HTTP_200_OK)
+            except Exception as e:
+                return Response(
+                    {'detail': f'Error saving avatar: {str(e)}'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete_avatar(self, user):
+        try:
+            if user.profile_image:
+                user.profile_image.delete(save=True)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response(
+                {'detail': f'Error deleting avatar: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def me(self, request):
+        auth_response = self.check_authenticated(request.user)
+        if auth_response:
+            return auth_response
+
+        user_serializer = PublicUserSerializer(request.user)
+        return Response(user_serializer.data)
+
+    @action(
+        detail=False,
+        methods=['put', 'delete'],
+        permission_classes=[permissions.IsAuthenticated],
+        url_path='me/avatar',
+        url_name='user_avatar'
+    )
+    def manage_profile_image(self, request):
+        auth_response = self.check_authenticated(request.user)
+        if auth_response:
+            return auth_response
+
+        user = request.user
+
+        if request.method == 'PUT':
+            return self.update_avatar(user, request.data, request)
+
+        if request.method == 'DELETE':
+            return self.delete_avatar(user)

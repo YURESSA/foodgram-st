@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from djoser.serializers import UserCreateSerializer, UserSerializer
+from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
 from .models import Follow
@@ -49,3 +50,11 @@ class PublicUserSerializer(UserSerializer):
                 return request.build_absolute_uri(obj.profile_image.url)
             return obj.profile_image.url
         return None
+
+
+class SetAvatarSerializer(serializers.ModelSerializer):
+    avatar = Base64ImageField(source='profile_image')
+
+    class Meta:
+        model = User
+        fields = ('avatar',)
