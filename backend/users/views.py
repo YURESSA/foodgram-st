@@ -45,7 +45,10 @@ class ExtendedUserViewSet(UserViewSet):
                 avatar_url = request.build_absolute_uri(
                     user.profile_image.url
                 ) if user.profile_image else None
-                return Response({'avatar': avatar_url}, status=status.HTTP_200_OK)
+                return Response(
+                    {'avatar': avatar_url},
+                    status=status.HTTP_200_OK
+                )
             except Exception as e:
                 return Response(
                     {'detail': f'Error saving avatar: {str(e)}'},
