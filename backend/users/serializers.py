@@ -1,3 +1,4 @@
+from api.serializers import RecipeMinifiedSerializer
 from django.contrib.auth import get_user_model
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
@@ -58,3 +59,41 @@ class SetAvatarSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('avatar',)
+
+
+class UserWithRecipesSerializer(PublicUserSerializer):
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+            'recipes',
+            'recipes_count',
+            'avatar',
+        )
+
+    def get_recipes(self, obj):
+        request = self.context.get('request')
+        recipes_limit = request.query_params.get('recipes_limit')
+        recipes = obj.recipes.all()
+
+        if recipes_limit:
+            try:
+                recipes = recipes[:int(recipes_limit)]
+            except (TypeError, ValueError):
+                pass
+
+        return RecipeMinifiedSerializer(
+            recipes, many=True, context=self.context
+        ).data
+
+    def get_recipes_count(self, obj):
+        return obj.recipes.count()
+

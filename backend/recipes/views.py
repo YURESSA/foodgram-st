@@ -8,8 +8,8 @@ from rest_framework.response import Response
 from .filters import RecipeFilter
 from .models import Recipe, FavoriteRecipe
 from .permissions import IsAdminOrAuthorOrReadOnly
-from .serializers import RecipeListSerializer, RecipeCreateUpdateSerializer, ShortLinkSerializer, \
-    RecipeMinifiedSerializer
+from .serializers import RecipeListSerializer, RecipeCreateUpdateSerializer, ShortLinkSerializer
+from api.serializers import RecipeMinifiedSerializer
 
 
 class RecipeViewSet(viewsets.ModelViewSet):

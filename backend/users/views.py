@@ -1,12 +1,14 @@
+from api.pagination import CustomPagination
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from api.pagination import CustomPagination
+from .models import Follow
 from .serializers import (
-    PublicUserSerializer, SetAvatarSerializer
+    PublicUserSerializer, SetAvatarSerializer, UserWithRecipesSerializer
 )
 
 User = get_user_model()
@@ -89,3 +91,56 @@ class ExtendedUserViewSet(UserViewSet):
 
         if request.method == 'DELETE':
             return self.delete_avatar(user)
+
+    @action(
+        detail=False,
+        methods=['get'],
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def subscriptions(self, request):
+        queryset = User.objects.filter(follower_set__follower=request.user)
+        page = self.paginate_queryset(queryset)
+        serializer = PublicUserSerializer(
+            page, many=True, context={'request': request}
+        )
+        return self.get_paginated_response(serializer.data)
+
+    @action(
+        detail=True,
+        methods=['post', 'delete'],
+        permission_classes=[permissions.IsAuthenticated],
+        url_path='subscribe'
+    )
+    def subscribe(self, request, **kwargs):
+        author_id = kwargs.get('id') or kwargs.get('pk')
+        author = get_object_or_404(User, id=author_id)
+
+        if request.user == author:
+            return Response(
+                {'detail': 'Нельзя подписаться на самого себя!'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if request.method == 'POST':
+            if Follow.objects.filter(follower=request.user, following=author).exists():
+                return Response(
+                    {'detail': 'Вы уже подписаны на этого автора!'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            Follow.objects.create(follower=request.user, following=author)
+
+            serializer = UserWithRecipesSerializer(
+                author,
+                context={'request': request}
+            )
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        follow = Follow.objects.filter(follower=request.user, following=author)
+        if not follow.exists():
+            return Response(
+                {'detail': 'Вы не подписаны на этого автора!'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        follow.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+

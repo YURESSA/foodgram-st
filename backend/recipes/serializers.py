@@ -1,6 +1,7 @@
 from drf_extra_fields.fields import Base64ImageField
 from ingredients.models import Ingredient
 from rest_framework import serializers
+from users.models import User
 from users.serializers import PublicUserSerializer
 
 from .models import (
@@ -138,12 +139,6 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         return RecipeListSerializer(recipe, context=self.context).data
 
 
-class RecipeMinifiedSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Recipe
-        fields = ('id', 'name', 'image', 'cooking_time')
-
-
 class ShortLinkSerializer(serializers.Serializer):
     short_link = serializers.SerializerMethodField()
 
@@ -156,3 +151,29 @@ class ShortLinkSerializer(serializers.Serializer):
 
     def to_representation(self, instance):
         return {'short-link': self.get_short_link(instance)}
+
+
+class UserWithRecipesSerializer(serializers.ModelSerializer):
+    recipes_count = serializers.SerializerMethodField()
+    recipes = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ('id', 'email', 'username', 'first_name', 'last_name',
+                  'recipes_count', 'recipes')
+
+    def get_recipes_count(self, obj):
+        return obj.recipes.count()
+
+    def get_recipes(self, obj):
+        request = self.context.get('request')
+        recipes_qs = obj.recipes.all()
+        limit = request.query_params.get('recipes_limit')
+        if limit:
+            try:
+                limit = int(limit)
+                recipes_qs = recipes_qs[:limit]
+            except ValueError:
+                pass
+        serializer = RecipeMinifiedSerializer(recipes_qs, many=True, context={'request': request})
+        return serializer.data
