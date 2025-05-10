@@ -100,10 +100,16 @@ class ExtendedUserViewSet(UserViewSet):
     def subscriptions(self, request):
         queryset = User.objects.filter(follower_set__follower=request.user)
         page = self.paginate_queryset(queryset)
-        serializer = PublicUserSerializer(
-            page, many=True, context={'request': request}
+        if page is not None:
+            serializer = UserWithRecipesSerializer(
+                page, many=True, context={'request': request}
+            )
+            return self.get_paginated_response(serializer.data)
+
+        serializer = UserWithRecipesSerializer(  # <--- и тут
+            queryset, many=True, context={'request': request}
         )
-        return self.get_paginated_response(serializer.data)
+        return Response(serializer.data)
 
     @action(
         detail=True,
@@ -143,4 +149,3 @@ class ExtendedUserViewSet(UserViewSet):
             )
         follow.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-

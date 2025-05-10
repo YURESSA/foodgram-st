@@ -55,4 +55,4 @@ jobs:
         with:
           context: ./frontend/
           push: true
-          tags: yuressa/foodgram_backend-front:latest
+          tags: yuressa/foodgram-front:latest
