@@ -15,8 +15,8 @@ services:
     depends_on:
       - postgres
     volumes:
-      - static_volume:/static/
-      - media_volume:/media/
+      - static_volume:/app/static/
+      - media_volume:/app/media/
     command: bash -c "python manage.py collectstatic --noinput && \
       python manage.py makemigrations && \
       python manage.py migrate && \
