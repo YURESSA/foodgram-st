@@ -66,6 +66,7 @@
 
 - **Frontend:** [http://localhost](http://localhost)
 - **API Docs:** [http://localhost/api/docs/](http://localhost/api/docs/)
+- **Админка:** [http://localhost/admin/](http://localhost/admin/)
 
 ---
 
