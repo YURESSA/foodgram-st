@@ -42,7 +42,9 @@ class ExtendedUserViewSet(UserViewSet):
         if serializer.is_valid():
             try:
                 serializer.save()
-                avatar_url = request.build_absolute_uri(user.profile_image.url) if user.profile_image else None
+                avatar_url = request.build_absolute_uri(
+                    user.profile_image.url
+                ) if user.profile_image else None
                 return Response({'avatar': avatar_url}, status=status.HTTP_200_OK)
             except Exception as e:
                 return Response(
@@ -63,7 +65,10 @@ class ExtendedUserViewSet(UserViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    @action(detail=False,
+            methods=['get'],
+            permission_classes=[permissions.IsAuthenticated]
+            )
     def me(self, request):
         auth_response = self.check_authenticated(request.user)
         if auth_response:
@@ -128,7 +133,10 @@ class ExtendedUserViewSet(UserViewSet):
             )
 
         if request.method == 'POST':
-            if Follow.objects.filter(follower=request.user, following=author).exists():
+            if Follow.objects.filter(
+                    follower=request.user,
+                    following=author
+            ).exists():
                 return Response(
                     {'detail': 'Вы уже подписаны на этого автора!'},
                     status=status.HTTP_400_BAD_REQUEST

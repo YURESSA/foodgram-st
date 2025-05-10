@@ -51,11 +51,15 @@ class RecipeListSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         user = self.context['request'].user
-        return False if user.is_anonymous else self._flag_exists(FavoriteRecipe, user, obj)
+        return False if user.is_anonymous else self._flag_exists(
+            FavoriteRecipe, user, obj
+        )
 
     def get_is_in_shopping_cart(self, obj):
         user = self.context['request'].user
-        return False if user.is_anonymous else self._flag_exists(ShoppingCart, user, obj)
+        return False if user.is_anonymous else self._flag_exists(
+            ShoppingCart, user, obj
+        )
 
 
 class AddIngredientSerializer(serializers.ModelSerializer):
@@ -94,21 +98,31 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
 
     def validate_image(self, file):
         if not file:
-            raise serializers.ValidationError('Поле image не может быть пустым.')
+            raise serializers.ValidationError(
+                'Поле image не может быть пустым.'
+            )
         return file
 
     def validate_ingredients(self, items):
         if not items:
-            raise serializers.ValidationError('Добавьте хотя бы один ингредиент.')
+            raise serializers.ValidationError(
+                'Добавьте хотя бы один ингредиент.'
+            )
         seen = set()
         for item in items:
             ing = Ingredient.objects.filter(id=item['id']).first()
             if not ing:
-                raise serializers.ValidationError(f'Ингредиент #{item["id"]} не найден.')
+                raise serializers.ValidationError(
+                    f'Ингредиент #{item["id"]} не найден.'
+                )
             if item['id'] in seen:
-                raise serializers.ValidationError('Ингредиенты не должны повторяться.')
+                raise serializers.ValidationError(
+                    'Ингредиенты не должны повторяться.'
+                )
             if item['amount'] < 1:
-                raise serializers.ValidationError('Количество должно быть > 0.')
+                raise serializers.ValidationError(
+                    'Количество должно быть > 0.'
+                )
             seen.add(item['id'])
         return items
 
@@ -176,5 +190,9 @@ class UserWithRecipesSerializer(serializers.ModelSerializer):
                 recipes_qs = recipes_qs[:limit]
             except ValueError:
                 pass
-        serializer = RecipeMinifiedSerializer(recipes_qs, many=True, context={'request': request})
+        serializer = RecipeMinifiedSerializer(
+            recipes_qs,
+            many=True,
+            context={'request': request}
+        )
         return serializer.data

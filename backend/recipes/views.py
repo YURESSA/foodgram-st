@@ -11,7 +11,8 @@ from rest_framework.response import Response
 from .filters import RecipeFilter
 from .models import Recipe, FavoriteRecipe, ShoppingCart, IngredientInRecipe
 from .permissions import IsAdminOrAuthorOrReadOnly
-from .serializers import RecipeListSerializer, RecipeCreateUpdateSerializer, ShortLinkSerializer
+from .serializers import (RecipeListSerializer, RecipeCreateUpdateSerializer,
+                          ShortLinkSerializer)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -78,7 +79,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = get_object_or_404(Recipe, id=pk)
 
         if request.method == 'POST':
-            if ShoppingCart.objects.filter(user=request.user, recipe=recipe).exists():
+            if (ShoppingCart.objects.filter
+                (user=request.user,
+                 recipe=recipe
+                 ).exists()):
                 return Response(
                     {'detail': 'Этот рецепт уже добавлен в вашу корзину!'},
                     status=status.HTTP_400_BAD_REQUEST
@@ -87,7 +91,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
             serializer = RecipeMinifiedSerializer(recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        cart_item = ShoppingCart.objects.filter(user=request.user, recipe=recipe)
+        cart_item = ShoppingCart.objects.filter(
+            user=request.user,
+            recipe=recipe
+        )
         if not cart_item.exists():
             return Response(
                 {'detail': 'Этот рецепт отсутствует в вашей корзине!'},
@@ -112,12 +119,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         shopping_list = "Список покупок:\n\n"
         for idx, item in enumerate(ingredients, 1):
-            shopping_list += f"{idx}. {item['ingredient__name']} - {item['total_amount']} {item['ingredient__measurement_unit']}\n"
+            shopping_list += (f"{idx}. {item['ingredient__name']} - "
+                              f"{item['total_amount']} "
+                              f"{item['ingredient__measurement_unit']}\n")
 
         response = HttpResponse(
             shopping_list,
             content_type='text/plain; charset=utf-8'
         )
-        response['Content-Disposition'] = 'attachment; filename=shopping_list.txt'
+        response['Content-Disposition'] = \
+            'attachment; filename=shopping_list.txt'
 
         return response

@@ -24,7 +24,8 @@ class UserAdmin(BaseUserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'username', 'first_name', 'last_name', 'password1', 'password2'),
+            'fields': ('email', 'username', 'first_name',
+                       'last_name', 'password1', 'password2'),
         }),
     )
     filter_horizontal = ('groups', 'user_permissions',)
@@ -33,6 +34,7 @@ class UserAdmin(BaseUserAdmin):
 @admin.register(Follow)
 class FollowAdmin(admin.ModelAdmin):
     list_display = ('follower', 'following', 'followed_at')
-    search_fields = ('follower__username', 'following__username', 'follower__email', 'following__email')
+    search_fields = ('follower__username', 'following__username',
+                     'follower__email', 'following__email')
     list_filter = ('followed_at',)
     ordering = ('-followed_at',)

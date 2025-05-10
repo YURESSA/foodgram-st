@@ -96,4 +96,3 @@ class UserWithRecipesSerializer(PublicUserSerializer):
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
-
