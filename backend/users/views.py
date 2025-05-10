@@ -4,7 +4,7 @@ from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from .pagination import CustomPagination
+from api.pagination import CustomPagination
 from .serializers import (
     PublicUserSerializer, SetAvatarSerializer
 )

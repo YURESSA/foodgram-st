@@ -47,7 +47,6 @@ from django.conf import settings
 
 
 class Follow(models.Model):
-    """Модель, отражающая подписку одного пользователя на другого."""
     follower = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
