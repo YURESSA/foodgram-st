@@ -1,3 +1,4 @@
+from api.serializers import RecipeMinifiedSerializer
 from drf_extra_fields.fields import Base64ImageField
 from ingredients.models import Ingredient
 from rest_framework import serializers

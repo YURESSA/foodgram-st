@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.utils.safestring import mark_safe
 from ingredients.models import Ingredient
 
 from users.models import User
@@ -23,7 +24,7 @@ class Recipe(models.Model):
         verbose_name="Название рецепта"
     )
     image = models.ImageField(
-        upload_to="recipe_pic",
+        upload_to="recipe_image",
         verbose_name="Фотография",
     )
     text = models.TextField(
@@ -45,6 +46,14 @@ class Recipe(models.Model):
 
     def __str__(self):
         return self.name
+
+    def image_tag(self):
+        if self.image:
+            return mark_safe(f'<img src="{self.image.url}" width="80" '
+                             f'height="80" style="object-fit: cover;" />')
+        return "Нет изображения"
+
+    image_tag.short_description = 'Превью'
 
 
 class IngredientInRecipe(models.Model):
