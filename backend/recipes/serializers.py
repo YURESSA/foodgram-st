@@ -3,7 +3,6 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
 from ingredients.models import Ingredient
-from users.models import User
 from users.serializers import PublicUserSerializer
 
 from .models import Recipe, IngredientInRecipe, FavoriteRecipe, ShoppingCart
@@ -51,16 +50,22 @@ class RecipeListSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         user = self.context['request'].user
-        return not user.is_anonymous and self._flag_exists(FavoriteRecipe, user, obj)
+        return not user.is_anonymous and self._flag_exists(
+            FavoriteRecipe, user, obj
+        )
 
     def get_is_in_shopping_cart(self, obj):
         user = self.context['request'].user
-        return not user.is_anonymous and self._flag_exists(ShoppingCart, user, obj)
+        return not user.is_anonymous and self._flag_exists(
+            ShoppingCart, user, obj
+        )
 
 
 class AddIngredientSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
-    amount = serializers.IntegerField(validators=[MinValueValidator(MIN_INGREDIENT_AMOUNT)])
+    amount = serializers.IntegerField(
+        validators=[MinValueValidator(MIN_INGREDIENT_AMOUNT)]
+    )
 
     class Meta:
         model = IngredientInRecipe
@@ -68,7 +73,9 @@ class AddIngredientSerializer(serializers.ModelSerializer):
 
     def validate_amount(self, value):
         if value < MIN_INGREDIENT_AMOUNT:
-            raise serializers.ValidationError(f'Количество должно быть больше или равно {MIN_INGREDIENT_AMOUNT}.')
+            raise serializers.ValidationError(
+                f'Количество должно быть больше или равно {MIN_INGREDIENT_AMOUNT}.'
+            )
         return value
 
 
