@@ -74,7 +74,8 @@ class AddIngredientSerializer(serializers.ModelSerializer):
     def validate_amount(self, value):
         if value < MIN_INGREDIENT_AMOUNT:
             raise serializers.ValidationError(
-                f'Количество должно быть больше или равно {MIN_INGREDIENT_AMOUNT}.'
+                f'Количество должно быть больше или равно '
+                f'{MIN_INGREDIENT_AMOUNT}.'
             )
         return value
 
