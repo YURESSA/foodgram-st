@@ -20,14 +20,6 @@ class ExtendedUserViewSet(UserViewSet):
     pagination_class = CustomPagination
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    def check_authenticated(self, user):
-        if not user.is_authenticated:
-            return Response(
-                {'detail': 'Unauthorized'},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
-        return None
-
     def update_avatar(self, user, data, request):
         if 'avatar' not in data:
             return Response(
@@ -70,13 +62,8 @@ class ExtendedUserViewSet(UserViewSet):
 
     @action(detail=False,
             methods=['get'],
-            permission_classes=[permissions.IsAuthenticated]
-            )
+            permission_classes=[permissions.IsAuthenticated])
     def me(self, request):
-        auth_response = self.check_authenticated(request.user)
-        if auth_response:
-            return auth_response
-
         user_serializer = PublicUserSerializer(request.user)
         return Response(user_serializer.data)
 
@@ -88,10 +75,6 @@ class ExtendedUserViewSet(UserViewSet):
         url_name='user_avatar'
     )
     def manage_profile_image(self, request):
-        auth_response = self.check_authenticated(request.user)
-        if auth_response:
-            return auth_response
-
         user = request.user
 
         if request.method == 'PUT':
@@ -114,7 +97,7 @@ class ExtendedUserViewSet(UserViewSet):
             )
             return self.get_paginated_response(serializer.data)
 
-        serializer = UserWithRecipesSerializer(  # <--- и тут
+        serializer = UserWithRecipesSerializer(
             queryset, many=True, context={'request': request}
         )
         return Response(serializer.data)

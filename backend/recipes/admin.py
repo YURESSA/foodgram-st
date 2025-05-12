@@ -38,7 +38,7 @@ class FavoriteRecipeAdmin(admin.ModelAdmin):
 
 @admin.register(ShoppingCart)
 class ShoppingCartAdmin(admin.ModelAdmin):
-    list_display = ('user', 'recipe', 'date_added')
+    list_display = ('user', 'recipe', 'added_at')
     search_fields = ('user__username', 'recipe__name')
-    list_filter = ('date_added',)
-    ordering = ('-date_added',)
+    list_filter = ('added_at',)
+    ordering = ('-added_at',)

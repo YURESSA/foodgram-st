@@ -1,4 +1,3 @@
-from api.serializers import RecipeMinifiedSerializer
 from django.contrib.auth import get_user_model
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
@@ -89,7 +88,7 @@ class UserWithRecipesSerializer(PublicUserSerializer):
                 recipes = recipes[:int(recipes_limit)]
             except (TypeError, ValueError):
                 pass
-
+        from recipes.serializers import RecipeMinifiedSerializer
         return RecipeMinifiedSerializer(
             recipes, many=True, context=self.context
         ).data

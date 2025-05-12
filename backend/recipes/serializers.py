@@ -1,14 +1,14 @@
-from api.serializers import RecipeMinifiedSerializer
+from django.core.validators import MinValueValidator
 from drf_extra_fields.fields import Base64ImageField
-from ingredients.models import Ingredient
 from rest_framework import serializers
+
+from ingredients.models import Ingredient
 from users.models import User
 from users.serializers import PublicUserSerializer
 
-from .models import (
-    Recipe, IngredientInRecipe,
-    FavoriteRecipe, ShoppingCart
-)
+from .models import Recipe, IngredientInRecipe, FavoriteRecipe, ShoppingCart
+
+MIN_INGREDIENT_AMOUNT = 1
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
@@ -51,24 +51,25 @@ class RecipeListSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         user = self.context['request'].user
-        return False if user.is_anonymous else self._flag_exists(
-            FavoriteRecipe, user, obj
-        )
+        return not user.is_anonymous and self._flag_exists(FavoriteRecipe, user, obj)
 
     def get_is_in_shopping_cart(self, obj):
         user = self.context['request'].user
-        return False if user.is_anonymous else self._flag_exists(
-            ShoppingCart, user, obj
-        )
+        return not user.is_anonymous and self._flag_exists(ShoppingCart, user, obj)
 
 
 class AddIngredientSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
-    amount = serializers.IntegerField()
+    amount = serializers.IntegerField(validators=[MinValueValidator(MIN_INGREDIENT_AMOUNT)])
 
     class Meta:
         model = IngredientInRecipe
         fields = ('id', 'amount')
+
+    def validate_amount(self, value):
+        if value < MIN_INGREDIENT_AMOUNT:
+            raise serializers.ValidationError(f'Количество должно быть больше или равно {MIN_INGREDIENT_AMOUNT}.')
+        return value
 
 
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
@@ -86,45 +87,41 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     def validate(self, data):
         request = self.context.get('request')
         if request and request.method in ('PUT', 'PATCH'):
-            missing = []
-            for field in ('ingredients', 'image'):
-                if field not in data:
-                    missing.append(field)
+            missing = [field for field in ('ingredients', 'image')
+                       if field not in data]
             if missing:
                 raise serializers.ValidationError({
                     f: 'Обязательное поле.' for f in missing
                 })
-        return data
 
-    def validate_image(self, file):
-        if not file:
+        image = data.get('image')
+        if not image:
             raise serializers.ValidationError(
-                'Поле image не может быть пустым.'
+                {'image': 'Это поле обязательно.'}
             )
-        return file
 
-    def validate_ingredients(self, items):
-        if not items:
+        ingredients = data.get('ingredients', [])
+        if not ingredients:
             raise serializers.ValidationError(
                 'Добавьте хотя бы один ингредиент.'
             )
+
         seen = set()
-        for item in items:
-            ing = Ingredient.objects.filter(id=item['id']).first()
-            if not ing:
-                raise serializers.ValidationError(
-                    f'Ингредиент #{item["id"]} не найден.'
-                )
+        for item in ingredients:
             if item['id'] in seen:
                 raise serializers.ValidationError(
                     'Ингредиенты не должны повторяться.'
                 )
-            if item['amount'] < 1:
+
+            ingredient = Ingredient.objects.filter(id=item['id']).first()
+            if not ingredient:
                 raise serializers.ValidationError(
-                    'Количество должно быть > 0.'
+                    f"Ингредиент с id {item['id']} не существует."
                 )
+
             seen.add(item['id'])
-        return items
+
+        return data
 
     def _bulk_create_ingredients(self, recipe, ingredients):
         objs = [
@@ -146,7 +143,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         if 'ingredients' in validated_data:
             ingredients = validated_data.pop('ingredients')
-            instance.ingredients.clear()
+            IngredientInRecipe.objects.filter(recipe=instance).delete()
             self._bulk_create_ingredients(instance, ingredients)
         return super().update(instance, validated_data)
 
@@ -158,41 +155,17 @@ class ShortLinkSerializer(serializers.Serializer):
     short_link = serializers.SerializerMethodField()
 
     class Meta:
-        fields = ('short-link',)
+        fields = ('short_link',)
 
     def get_short_link(self, obj):
         url = self.context['request'].build_absolute_uri('/')
-        return f"{url.rstrip('/')}/api/recipes/{obj.id}"
+        return f"{url.rstrip('/')}/recipes/{obj.id}"
 
     def to_representation(self, instance):
         return {'short-link': self.get_short_link(instance)}
 
 
-class UserWithRecipesSerializer(serializers.ModelSerializer):
-    recipes_count = serializers.SerializerMethodField()
-    recipes = serializers.SerializerMethodField()
-
+class RecipeMinifiedSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
-        fields = ('id', 'email', 'username', 'first_name', 'last_name',
-                  'recipes_count', 'recipes')
-
-    def get_recipes_count(self, obj):
-        return obj.recipes.count()
-
-    def get_recipes(self, obj):
-        request = self.context.get('request')
-        recipes_qs = obj.recipes.all()
-        limit = request.query_params.get('recipes_limit')
-        if limit:
-            try:
-                limit = int(limit)
-                recipes_qs = recipes_qs[:limit]
-            except ValueError:
-                pass
-        serializer = RecipeMinifiedSerializer(
-            recipes_qs,
-            many=True,
-            context={'request': request}
-        )
-        return serializer.data
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')

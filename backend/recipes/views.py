@@ -1,5 +1,4 @@
 from api.pagination import CustomPagination
-from api.serializers import RecipeMinifiedSerializer
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -12,7 +11,7 @@ from .filters import RecipeFilter
 from .models import Recipe, FavoriteRecipe, ShoppingCart, IngredientInRecipe
 from .permissions import IsAdminOrAuthorOrReadOnly
 from .serializers import (RecipeListSerializer, RecipeCreateUpdateSerializer,
-                          ShortLinkSerializer)
+                          ShortLinkSerializer, RecipeMinifiedSerializer)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):

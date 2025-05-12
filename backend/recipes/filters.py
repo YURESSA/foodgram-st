@@ -4,7 +4,6 @@ from .models import Recipe
 
 
 class RecipeFilter(filters.FilterSet):
-    author = filters.NumberFilter(field_name='author__id')
     is_favorited = filters.BooleanFilter(method='filter_is_favorited')
     is_in_shopping_cart = filters.BooleanFilter(
         method='filter_is_in_shopping_cart'
@@ -19,8 +18,7 @@ class RecipeFilter(filters.FilterSet):
         if user.is_authenticated:
             if value:
                 return queryset.filter(favorite_by__user=user)
-            else:
-                return queryset.exclude(favorite_by__user=user)
+            return queryset.exclude(favorite_by__user=user)
         return queryset
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
@@ -28,6 +26,5 @@ class RecipeFilter(filters.FilterSet):
         if user.is_authenticated:
             if value:
                 return queryset.filter(in_shopping_carts__user=user)
-            else:
-                return queryset.exclude(in_shopping_carts__user=user)
+            return queryset.exclude(in_shopping_carts__user=user)
         return queryset

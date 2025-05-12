@@ -2,9 +2,12 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.safestring import mark_safe
-from ingredients.models import Ingredient
 
+from ingredients.models import Ingredient
 from users.models import User
+
+# Константы
+MIN_COOKING_TIME = 1
 
 
 class Recipe(models.Model):
@@ -32,7 +35,7 @@ class Recipe(models.Model):
     )
     cooking_time = models.PositiveIntegerField(
         "Время приготовления (в минутах)",
-        validators=[MinValueValidator(1)],
+        validators=[MinValueValidator(MIN_COOKING_TIME)],
     )
     created_at = models.DateTimeField(
         auto_now_add=True,
@@ -70,7 +73,7 @@ class IngredientInRecipe(models.Model):
     )
     amount = models.PositiveIntegerField(
         verbose_name="Количество",
-        validators=(MinValueValidator(1),),
+        validators=(MinValueValidator(MIN_COOKING_TIME),),
     )
     created_at = models.DateTimeField(
         auto_now_add=True,
@@ -137,7 +140,7 @@ class ShoppingCart(models.Model):
         related_name='in_shopping_carts',
         verbose_name='Рецепт',
     )
-    date_added = models.DateTimeField(
+    added_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Дата добавления',
     )
