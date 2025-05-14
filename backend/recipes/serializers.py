@@ -10,7 +10,6 @@ from .models import Recipe, IngredientInRecipe, FavoriteRecipe, ShoppingCart
 from constants import MIN_INGREDIENT_AMOUNT
 
 
-
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='ingredient.id')
     name = serializers.CharField(source='ingredient.name')
@@ -78,10 +77,10 @@ class AddIngredientSerializer(serializers.ModelSerializer):
     def validate_amount(self, value):
         if value < MIN_INGREDIENT_AMOUNT:
             raise serializers.ValidationError(
-                f'Количество должно быть больше или равно {MIN_INGREDIENT_AMOUNT}.'
+                f'Количество должно быть больше или равно '
+                f'{MIN_INGREDIENT_AMOUNT}.'
             )
         return value
-
 
 
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):

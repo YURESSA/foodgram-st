@@ -15,6 +15,7 @@ from .serializers import (
     ShortLinkSerializer, RecipeMinifiedSerializer
 )
 
+
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     pagination_class = RecipesPagination
