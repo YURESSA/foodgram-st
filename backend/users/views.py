@@ -1,4 +1,3 @@
-from api.pagination import CustomPagination
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
@@ -7,6 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from .models import Follow
+from .pagination import UserPagination
 from .serializers import (
     PublicUserSerializer, SetAvatarSerializer, UserWithRecipesSerializer
 )
@@ -17,7 +17,7 @@ User = get_user_model()
 class ExtendedUserViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = PublicUserSerializer
-    pagination_class = CustomPagination
+    pagination_class = UserPagination
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def update_avatar(self, user, data, request):

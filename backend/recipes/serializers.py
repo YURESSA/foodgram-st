@@ -7,7 +7,8 @@ from users.serializers import PublicUserSerializer
 
 from .models import Recipe, IngredientInRecipe, FavoriteRecipe, ShoppingCart
 
-MIN_INGREDIENT_AMOUNT = 1
+from constants import MIN_INGREDIENT_AMOUNT
+
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
@@ -62,7 +63,10 @@ class RecipeListSerializer(serializers.ModelSerializer):
 
 
 class AddIngredientSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField()
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all(),
+        source='ingredient'
+    )
     amount = serializers.IntegerField(
         validators=[MinValueValidator(MIN_INGREDIENT_AMOUNT)]
     )
@@ -74,10 +78,10 @@ class AddIngredientSerializer(serializers.ModelSerializer):
     def validate_amount(self, value):
         if value < MIN_INGREDIENT_AMOUNT:
             raise serializers.ValidationError(
-                f'Количество должно быть больше или равно '
-                f'{MIN_INGREDIENT_AMOUNT}.'
+                f'Количество должно быть больше или равно {MIN_INGREDIENT_AMOUNT}.'
             )
         return value
+
 
 
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
@@ -93,41 +97,24 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        request = self.context.get('request')
-        if request and request.method in ('PUT', 'PATCH'):
-            missing = [field for field in ('ingredients', 'image')
-                       if field not in data]
-            if missing:
-                raise serializers.ValidationError({
-                    f: 'Обязательное поле.' for f in missing
-                })
+        errors = {}
+        if not data.get('image'):
+            errors['image'] = 'Это поле обязательно.'
 
-        image = data.get('image')
-        if not image:
-            raise serializers.ValidationError(
-                {'image': 'Это поле обязательно.'}
-            )
-
-        ingredients = data.get('ingredients', [])
+        ingredients = data.get('ingredients')
         if not ingredients:
-            raise serializers.ValidationError(
-                'Добавьте хотя бы один ингредиент.'
-            )
+            errors['ingredients'] = 'Добавьте хотя бы один ингредиент.'
+
+        if errors:
+            raise serializers.ValidationError(errors)
 
         seen = set()
         for item in ingredients:
-            if item['id'] in seen:
+            if item['ingredient'] in seen:
                 raise serializers.ValidationError(
                     'Ингредиенты не должны повторяться.'
                 )
-
-            ingredient = Ingredient.objects.filter(id=item['id']).first()
-            if not ingredient:
-                raise serializers.ValidationError(
-                    f"Ингредиент с id {item['id']} не существует."
-                )
-
-            seen.add(item['id'])
+            seen.add(item['ingredient'])
 
         return data
 
@@ -135,7 +122,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         objs = [
             IngredientInRecipe(
                 recipe=recipe,
-                ingredient_id=item['id'],
+                ingredient=item['ingredient'],
                 amount=item['amount']
             ) for item in ingredients
         ]

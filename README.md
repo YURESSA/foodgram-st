@@ -33,15 +33,17 @@
 2. **Создайте `.env` файл в директории `/backend/`**, используя код ниже как шаблон:
    ```ini
    DEBUG=True
-   SECRET_KEY=django-insecure-41w890+xadf1bxiohf09c+4y*qj$j$@tjw_uqx)&imzr0bs^
-   ALLOWED_HOSTS=127.0.0.1,localhost
-   CSRF_TRUSTED_ORIGINS=http://127.0.0.1,http://localhost
-
-   PG_DB_NAME=foodgram_backend
-   PG_DB_USER=foodgram_user
-   PG_DB_PASSWORD=6ghHIUNJBY87JBIO8jY
-   PG_DB_HOST=postgres
-   PG_DB_PORT=5432
+    SECRET_KEY=django-insecure-41w890+xadf1bxiohf09c+4y*qj$j$@tjw_uqx)&imzr0bs^
+    ALLOWED_HOSTS=127.0.0.1,localhost
+    CSRF_TRUSTED_ORIGINS=http://127.0.0.1,http://localhost
+    
+    USE_SQLITE=False
+    
+    PG_DB_NAME=foodgram_backend
+    PG_DB_USER=foodgram_user
+    PG_DB_PASSWORD=6ghHIUNJBY87JBIO8jY
+    PG_DB_HOST=postgres
+    PG_DB_PORT=5432
    ```
 
 ---

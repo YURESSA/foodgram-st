@@ -3,8 +3,6 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
-from .models import Follow
-
 User = get_user_model()
 
 
@@ -38,9 +36,7 @@ class PublicUserSerializer(UserSerializer):
     def get_is_subscribed(self, obj):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
-            return Follow.objects.filter(
-                follower=request.user, following=obj
-            ).exists()
+            return obj.following_set.filter(follower=request.user).exists()
         return False
 
     def get_avatar(self, obj):

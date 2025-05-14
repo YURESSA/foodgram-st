@@ -5,9 +5,12 @@ from django.utils.safestring import mark_safe
 
 from ingredients.models import Ingredient
 from users.models import User
-
-# Константы
-MIN_COOKING_TIME = 1
+from constants import (
+    MIN_COOKING_TIME,
+    RECIPE_NAME_MAX_LENGTH,
+    RECIPE_IMAGE_UPLOAD_PATH,
+    MIN_INGREDIENT_AMOUNT,
+)
 
 
 class Recipe(models.Model):
@@ -23,11 +26,11 @@ class Recipe(models.Model):
         verbose_name="Ингредиенты",
     )
     name = models.CharField(
-        max_length=254,
+        max_length=RECIPE_NAME_MAX_LENGTH,
         verbose_name="Название рецепта"
     )
     image = models.ImageField(
-        upload_to="recipe_image",
+        upload_to=RECIPE_IMAGE_UPLOAD_PATH,
         verbose_name="Фотография",
     )
     text = models.TextField(
@@ -73,7 +76,7 @@ class IngredientInRecipe(models.Model):
     )
     amount = models.PositiveIntegerField(
         verbose_name="Количество",
-        validators=(MinValueValidator(MIN_COOKING_TIME),),
+        validators=(MinValueValidator(MIN_INGREDIENT_AMOUNT),),
     )
     created_at = models.DateTimeField(
         auto_now_add=True,

@@ -1,7 +1,6 @@
 from django.db import models
 
-INGREDIENT_NAME_MAX_LENGTH = 128
-UNIT_MAX_LENGTH = 64
+from constants import INGREDIENT_NAME_MAX_LENGTH, UNIT_MAX_LENGTH
 
 
 class Ingredient(models.Model):
